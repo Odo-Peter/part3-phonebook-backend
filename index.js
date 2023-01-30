@@ -49,12 +49,17 @@ app.get('/api/persons/:id', (req, res, next) => {
     .catch((err) => next(err));
 });
 
-app.get('/api/info', (req, res) => {
-  res.send(
-    `<h2>Phonebook has info for ${
-      Person.length
-    } people</h2> <p>${new Date()}</p>`
-  );
+app.get('/api/info', (req, res, next) => {
+ Person.estimatedDocumentCount()
+    .then((count) => {
+      res.send(
+        `<h2>Phonebook has info for ${
+          count
+        } people</h2> <p>${new Date()}</p>`
+      );
+    })
+    .catch((err) => next(err));
+
 });
 
 app.put('/api/persons/:id', (req, res, next) => {
