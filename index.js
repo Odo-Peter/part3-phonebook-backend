@@ -18,21 +18,40 @@ app.use(
   morgan(':method :url :status :res[content-length] - :response-time ms :body')
 );
 
-app.post('/api/persons', (req, res) => {
+app.post('/api/persons', (req, res, next) => {
   const body = req.body;
 
-  if (body.name === undefined || body.number === undefined)
-    res.status(404).json({ error: 'Content missing' });
-  else {
-    const person = new Person({
-      name: body.name,
-      number: body.number,
-    });
-    person.save().then((savedPerson) => {
-      console.log(savedPerson.id);
-      res.json(savedPerson);
-    });
+  const person = new Person({
+    name: body.name,
+    number: body.number,
+  });
+
+  console.log(person);
+
+  async function getPersons() {
+    try {
+      let persons = await Person.find({});
+      let data = [...persons];
+
+      const names = data.map((each) => each.name.indexOf(person.name) > -1);
+
+      const filtered = names.filter((bool) => bool);
+      console.log(filtered[0]);
+      if (filtered[0]) {
+        res.status(400).send({ error: 'Number already in contact list' });
+      } else {
+        person
+          .save()
+          .then((savedPerson) => {
+            res.json(savedPerson);
+          })
+          .catch((err) => next(err));
+      }
+    } catch (err) {
+      console.error(err);
+    }
   }
+  getPersons();
 });
 
 app.get('/api/persons', (req, res) => {
@@ -50,27 +69,23 @@ app.get('/api/persons/:id', (req, res, next) => {
 });
 
 app.get('/api/info', (req, res, next) => {
- Person.estimatedDocumentCount()
+  Person.estimatedDocumentCount()
     .then((count) => {
       res.send(
-        `<h2>Phonebook has info for ${
-          count
-        } people</h2> <p>${new Date()}</p>`
+        `<h2>Phonebook has info for ${count} people</h2> <p>${new Date()}</p>`
       );
     })
     .catch((err) => next(err));
-
 });
 
 app.put('/api/persons/:id', (req, res, next) => {
-  const body = req.body;
+  const { name, number } = req.body;
 
-  const person = {
-    name: body.name,
-    number: body.number,
-  };
-
-  Person.findByIdAndUpdate(req.params.id, person, { new: true })
+  Person.findByIdAndUpdate(
+    req.params.id,
+    { name, number },
+    { new: true, runValidators: true, context: 'query' }
+  )
     .then((updatePerson) => {
       res.json(updatePerson);
     })
@@ -92,6 +107,8 @@ const errorHandler = (error, req, res, next) => {
 
   if (error.name === 'CastError')
     return res.status(400).send({ error: 'malformatted id' });
+  else if (error.name === 'validationError')
+    return res.status(400).send({ error: error.message });
   next(error);
 };
 

@@ -10,15 +10,15 @@ POST http://localhost:3001/api/persons HTTP/1.1
 content-type: application/json
 
 {
-    "name" : "Odo Peter",
-    "number" : "940-419-361"
+    "name" : "Brian Peters",
+    "number" : "942-41328"
 }
 
 ###
-PUT http://localhost:3001/api/persons/63d0ae7c1840b6fbaac0d612 HTTP/1.1
+PUT http://localhost:3001/api/persons/63d1e32501f0d7f3e96ffacc HTTP/1.1
 content-type: application/json
 
 {
-    "name": "Favor Ramon",
+    "name": "Fav",
     "number": "080-345-433"
 }
