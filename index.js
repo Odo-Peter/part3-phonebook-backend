@@ -10,9 +10,9 @@ app.use(express.static('build'));
 app.use(express.json());
 app.use(cors());
 
-morgan.token('body', (req, res) =>
-  req.method === 'POST' ? JSON.stringify(req.body) : ''
-);
+morgan.token('body', (req) => {
+  req.method === 'POST' ? JSON.stringify(req.body) : '';
+});
 
 app.use(
   morgan(':method :url :status :res[content-length] - :response-time ms :body')
@@ -98,7 +98,10 @@ app.put('/api/persons/:id', (req, res, next) => {
 app.delete('/api/persons/:id', (req, res, next) => {
   Person.findById(req.params.id)
     .then((person) => Person.deleteOne(person))
-    .then((result) => res.status(204).end())
+    .then((result) => {
+      console.log(result);
+      res.status(204).end();
+    })
     .catch((err) => next(err));
 });
 
